@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>服务器信息API</title>
+</head>
+<body>
+    <script>
+        // 服务器数据
+     const serverInfo = [
+        {
+            ServerIP: "127.0.0.1",
+            ServerPort: "18182",
+            ServerState: "正常",
+            ServerMode: "公开",
+            ServerName: "XChat服务器",
+            ServerPlugin: "限制服,MOD物品"
+        },
+        {
+            ServerIP: "127.0.0.1",
+            ServerPort: "18182",
+            ServerState: "正常",
+            ServerMode: "公开",
+            ServerName: "XChat服务器",
+            ServerPlugin: "限制服,MOD物品"
+        }
+
+];
+
+
+        // 设置响应头为JSON格式
+        function returnJSON() {
+            const jsonString = JSON.stringify(serverInfo, null, 2);
+            
+            // 创建响应对象
+            const response = new Response(jsonString, {
+                status: 200,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                }
+            });
+            
+            // 返回JSON响应
+            return response;
+        }
+
+        // 页面加载时自动返回JSON
+        window.onload = function() {
+            const jsonResponse = returnJSON();
+            
+            // 如果是通过fetch等方式访问，可以直接返回响应
+            if (window.location.search.includes('api')) {
+                // 在实际服务器环境中，这里应该由服务器端代码处理
+                document.body.textContent = JSON.stringify(serverInfo, null, 2);
+            } else {
+                // 普通网页访问时显示JSON内容
+                document.body.textContent = JSON.stringify(serverInfo, null, 2);
+            }
+        };
+    </script>
+</body>
+</html>
