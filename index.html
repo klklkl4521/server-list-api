@@ -64,7 +64,6 @@
             overflow: hidden;
             box-shadow: var(--shadow);
             -webkit-backdrop-filter: blur(10px);
-            backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
@@ -300,8 +299,7 @@
                     headers: {
                         'Cache-Control': 'no-cache',
                         'Pragma': 'no-cache',
-                        'content-type': 'application/json; charset=utf-8',
-                        'X-Content-Type-Options': 'nosniff',
+                        'content-type': 'application/json',
                     }
                 });
 
@@ -415,6 +413,7 @@
 </body>
 
 </html>
+
 
 
 
