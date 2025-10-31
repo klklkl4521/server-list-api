@@ -1,52 +1,415 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>服务器信息API</title>
+    <title>服务器信息列表</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3a0ca3;
+            --success: #4cc9f0;
+            --warning: #f72585;
+            --dark: #1a1a2e;
+            --light: #f8f9fa;
+            --gray: #6c757d;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #52c04e 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .main-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .stats-bar {
+            display: flex;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            padding: 20px;
+            justify-content: space-around;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 10px;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .content-area {
+            padding: 30px;
+        }
+
+        .server-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .server-item {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid var(--success);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+            margin: 10px;
+        }
+
+        .server-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .server-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .server-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .server-status {
+            background: var(--success);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .server-status.warning {
+            background: var(--warning);
+        }
+
+        .server-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .detail-label {
+            font-size: 0.8rem;
+            color: var(--gray);
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            font-weight: 500;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(67, 97, 238, 0.2);
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border-left: 4px solid #c33;
+        }
+
+        .refresh-btn {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 20px auto 0;
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+        }
+
+        .refresh-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(67, 97, 238, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .stats-bar {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .stat-value {
+                font-size: 2rem;
+            }
+
+            .content-area {
+                padding: 20px;
+            }
+
+            .server-details {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
+
 <body>
-    <div id="loading">正在加载服务器数据...</div>
-    <div id="content"></div>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-server"></i> 服务器信息</h1>
+            <p>实时服务器状态与配置信息</p>
+        </div>
+
+        <div class="main-card">
+            <div id="statsBar" class="stats-bar">
+                <div class="stat-item">
+                    <div class="stat-value" id="totalServers">-</div>
+                    <div class="stat-label">总服务器数</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="onlineServers">-</div>
+                    <div class="stat-label">在线服务器</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="offlineServers">-</div>
+                    <div class="stat-label">维护中</div>
+                </div>
+            </div>
+
+            <div class="content-area">
+                <div id="serverListContainer">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <div>正在加载服务器数据...</div>
+                    </div>
+                </div>
+
+                <button class="refresh-btn" onclick="refreshData(true)">
+                    <i class="fas fa-sync-alt"></i> 刷新数据
+                </button>
+            </div>
+        </div>
+    </div>
 
     <script>
-        async function fetchServerInfo() {
+        // 从API加载服务器信息（添加时间戳防止缓存）
+        async function fetchServerInfo(forceRefresh = false) {
             try {
-                const response = await fetch('api/server.json');
+                let url = './api/server.json';  // 添加相对路径前缀
                 
+                // 修复2：正确处理时间戳参数
+                if (forceRefresh) {
+                    const separator = url.includes('?') ? '&' : '?';
+                    url += `${separator}t=${Date.now()}`;
+                }
+                const response = await fetch(url,{
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache',
+                        'content-type': 'application/json'
+                    }
+                });
+
                 if (!response.ok) {
                     throw new Error(`HTTP错误! 状态: ${response.status}`);
                 }
-                
-                const data = await response.json();
-                return data;
+
+                return await response.json();
             } catch (error) {
                 console.error('加载服务器数据失败:', error);
                 throw error;
             }
         }
 
-        async function displayServerInfo() {
-            const loadingDiv = document.getElementById('loading');
-            
+        // 更新统计信息
+        function updateStats(servers) {
+            const totalServers = servers.length;
+            const onlineServers = servers.filter(s => s.ServerState === '正常').length;
+            const offlineServers = totalServers - onlineServers;
+
+            document.getElementById('totalServers').textContent = totalServers;
+            document.getElementById('onlineServers').textContent = onlineServers;
+            document.getElementById('offlineServers').textContent = offlineServers;
+        }
+
+        // 创建服务器列表HTML
+        function createServerListHTML(servers) {
+            if (!servers || servers.length === 0) {
+                return '<div class="error-message">暂无服务器数据</div>';
+            }
+
+            return servers.map(server => `
+                <div class="server-item">
+                    <div class="server-header">
+                        <div class="server-name">${server.ServerName || '未知服务器'}</div>
+                        <div class="server-status ${server.ServerState !== '正常' ? 'warning' : ''}">
+                            ${server.ServerState || '未知状态'}
+                        </div>
+                    </div>
+                    <div class="server-details">
+                        <div class="detail-item">
+                            <div class="detail-label">IP地址</div>
+                            <div class="detail-value">${server.ServerIP || '未知'}:${server.ServerPort || '未知'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">模式</div>
+                            <div class="detail-value">${server.ServerMode || '未知'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">插件</div>
+                            <div class="detail-value">${server.ServerPlugin || '无'}</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 加载并显示服务器信息
+        async function loadAndDisplayServerInfo(forceRefresh = false) {
+            const container = document.getElementById('serverListContainer');
+
             try {
-                const serverInfo = await fetchServerInfo();
-                
-                // 隐藏加载提示
-                loadingDiv.style.display = 'none';
-                
-                // 设置页面内容为格式化JSON
-                document.body.innerHTML = `<pre>${JSON.stringify(serverInfo, null, 2)}</pre>`;
-                document.title = "Server Info API";
-                
+                const data = await fetchServerInfo(forceRefresh);
+                console.log('获取到的数据:', data);
+
+                // 处理两种可能的数据结构
+                let servers;
+                if (Array.isArray(data)) {
+                    servers = data;
+                } else if (data.servers && Array.isArray(data.servers)) {
+                    servers = data.servers;
+                } else {
+                    throw new Error('无效的数据格式');
+                }
+
+                updateStats(servers);
+                container.innerHTML = createServerListHTML(servers);
+
+                // 更新页面标题
+                document.title = `服务器信息 (${servers.length}台)`;
             } catch (error) {
-                loadingDiv.textContent = `加载失败: ${error.message}`;
+                console.error('加载错误:', error);
+                container.innerHTML = `
+                    <div class="error-message">
+                        <h3><i class="fas fa-exclamation-triangle"></i> 加载失败</h3>
+                        <p>错误信息: ${error.message}</p>
+                        <p>请检查API端点是否可访问</p>
+                    </div>
+                `;
             }
         }
 
-        // 页面加载时自动执行
-        window.addEventListener('DOMContentLoaded', displayServerInfo);
+        // 刷新数据
+        function refreshData(force = false) {
+            const btn = document.querySelector('.refresh-btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 刷新中...';
+            btn.disabled = true;
+
+            loadAndDisplayServerInfo(force).finally(() => {
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }, 500);
+            });
+        }
+
+        // 页面加载时自动获取数据
+        window.addEventListener('DOMContentLoaded', () => loadAndDisplayServerInfo());
     </script>
 </body>
-</html>
 
+</html>
